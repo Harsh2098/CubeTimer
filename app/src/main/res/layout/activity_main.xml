@@ -16,7 +16,7 @@
         android:paddingBottom="24dp"
         android:text="@string/timer_start_value"
         android:textColor="@color/headings"
-        android:textSize="32sp"
+        android:textSize="48sp"
         app:layout_constraintBottom_toBottomOf="@id/guidelineOuter"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -22,20 +22,20 @@ public class ScrambleGenerator {
         int[] arr = new int[length];
         int temp;
 
-        arr[0] = random.nextInt() % moves.length;
+        arr[0] = Math.abs(random.nextInt() % moves.length);
         scrambleBuilder.append(moves[arr[0]]);
 
-        for (int i = 1; i < arr.length; ++i) {
+        for (int i = 1; i < length; ++i) {
 
             do {
-                temp = random.nextInt() % moves.length;
+                temp = Math.abs(random.nextInt() % moves.length);
             } while (temp % BASIC_MOVES == arr[i - 1] % BASIC_MOVES);
 
             arr[i] = temp;
         }
 
-        for (int num : arr) {
-            scrambleBuilder.append(" ").append(moves[num]);
+        for (int i = 1; i < arr.length; ++i) {
+            scrambleBuilder.append(" ").append(moves[arr[i]]);
         }
 
         return scrambleBuilder.toString();
