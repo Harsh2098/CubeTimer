@@ -7,5 +7,8 @@
     <string name="time">time</string>
     <string name="best">best</string>
     <string name="sample_4x4_scramble">F2 L2 D B2 F2 L2 D R2 B2 L2 U2 F2 L\' B D\' L2 B\' D2 F R D2 Uw2 Fw2 R\' U2 B\' L B\' Rw2 F\' Rw2 Fw2 F2 Uw B2 Rw2 U2 R\' Fw F2 R\' D Rw B2 Rw2</string>
-    <string name="timer_start_value">00:000</string>
+    <string name="_3x3">3x3</string>
+    <string name="_4x4">4x4</string>
+    <string name="_5x5">5x5</string>
+    <string name="timer_place_holder">00:00:000</string>
 </resources>
