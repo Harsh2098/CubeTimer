@@ -1,8 +1,8 @@
-package com.hmproductions.cubetimer.data
+package com.hmproductions.cubetimer.room
 
 import androidx.annotation.WorkerThread
 import androidx.lifecycle.LiveData
-import com.hmproductions.cubetimer.Statistic
+import com.hmproductions.cubetimer.data.Statistic
 
 class StatisticsRepository(private val statisticsDao: StatisticsDao) {
 

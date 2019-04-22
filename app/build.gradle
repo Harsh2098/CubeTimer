@@ -19,11 +19,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    packagingOptions {
+        pickFirst("META-INF/atomicfu.kotlin_module")
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     // Support libraries
     implementation 'androidx.appcompat:appcompat:1.1.0-alpha04'
@@ -38,6 +41,7 @@ dependencies {
     // Kotlin libraries
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation "org.jetbrains.anko:anko:0.10.5"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.2.0'
 
     // Lifecycle
     implementation 'android.arch.lifecycle:extensions:1.1.1'

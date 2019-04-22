@@ -1,7 +1,7 @@
 package com.hmproductions.cubetimer.utils
 
 import androidx.room.TypeConverter
-import com.hmproductions.cubetimer.CubeType
+import com.hmproductions.cubetimer.data.CubeType
 
 class CubeConverter {
 

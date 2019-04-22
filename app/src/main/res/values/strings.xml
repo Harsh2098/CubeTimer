@@ -10,5 +10,5 @@
     <string name="_3x3">3x3</string>
     <string name="_4x4">4x4</string>
     <string name="_5x5">5x5</string>
-    <string name="timer_place_holder">00:00:000</string>
+    <string name="timer_place_holder">00.000</string>
 </resources>

@@ -1,8 +1,8 @@
-package com.hmproductions.cubetimer.data
+package com.hmproductions.cubetimer.room
 
 import android.content.Context
 import androidx.room.*
-import com.hmproductions.cubetimer.Statistic
+import com.hmproductions.cubetimer.data.Statistic
 import com.hmproductions.cubetimer.utils.CubeConverter
 
 @Database(entities = [Statistic::class], version = 1)

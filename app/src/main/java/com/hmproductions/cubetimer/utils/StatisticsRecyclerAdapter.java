@@ -8,16 +8,16 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.hmproductions.cubetimer.R;
-import com.hmproductions.cubetimer.Statistic;
+import com.hmproductions.cubetimer.data.Record;
 
 import java.util.List;
 
 public class StatisticsRecyclerAdapter extends RecyclerView.Adapter<StatisticsRecyclerAdapter.StatsViewHolder> {
 
     private Context context;
-    private List<Statistic> list;
+    private List<Record> list;
 
-    public StatisticsRecyclerAdapter(Context context, List<Statistic> list) {
+    public StatisticsRecyclerAdapter(Context context, List<Record> list) {
         this.context = context;
         this.list = list;
     }
@@ -30,9 +30,9 @@ public class StatisticsRecyclerAdapter extends RecyclerView.Adapter<StatisticsRe
 
     @Override
     public void onBindViewHolder(@NonNull StatsViewHolder holder, int position) {
-        Statistic currentStats = list.get(position);
+        Record currentStats = list.get(position);
 
-        holder.idTextView.setText(String.valueOf(currentStats.getId()));
+        holder.idTextView.setText(String.valueOf(currentStats.getNumber()));
         holder.timeTextView.setText(currentStats.getTime());
         holder.ao5TextView.setText(currentStats.getAo5());
         holder.ao12TextView.setText(currentStats.getAo12());
@@ -44,12 +44,12 @@ public class StatisticsRecyclerAdapter extends RecyclerView.Adapter<StatisticsRe
         return list.size();
     }
 
-    public void insertNewStatistic(Statistic newStats) {
+    public void insertNewStatistic(Record newStats) {
         list.add(0, newStats);
         notifyItemInserted(0);
     }
 
-    public void swapData(List<Statistic> newData) {
+    public void swapData(List<Record> newData) {
         list = newData;
         notifyDataSetChanged();
     }

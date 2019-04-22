@@ -1,19 +1,27 @@
 package com.hmproductions.cubetimer
 
+import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.preference.PreferenceManager
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.hmproductions.cubetimer.data.CubeType
+import com.hmproductions.cubetimer.data.Record
+import com.hmproductions.cubetimer.data.Statistic
+import com.hmproductions.cubetimer.data.StatisticsViewModel
+import com.hmproductions.cubetimer.utils.ScrambleGenerator.*
 import com.hmproductions.cubetimer.utils.StatisticsRecyclerAdapter
+import com.hmproductions.cubetimer.utils.getDateFromTimeInMillis
+import com.hmproductions.cubetimer.utils.getTimerFormatString
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.textColor
 
@@ -23,10 +31,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var preferences: SharedPreferences
     private lateinit var statisticsRecyclerAdapter: StatisticsRecyclerAdapter
 
-    private var running = false
-    private var ready = false
     private lateinit var holdingTimer: CountDownTimer
     private lateinit var actualTimer: CountDownTimer
+    private var observer: Observer<List<Statistic>>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,18 +47,72 @@ class MainActivity : AppCompatActivity() {
         statsRecyclerView.setHasFixedSize(false)
         statsRecyclerView.adapter = statisticsRecyclerAdapter
 
-        subscribeToStatistics(CubeType.values()[preferences.getInt(CUBE_TYPE_KEY, 0)])
+        with(CubeType.values()[preferences.getInt(CUBE_TYPE_KEY, 0)]) {
+            model.setCubeTypeFromPreferences(this)
+            subscribeToStatistics(this)
+        }
 
         setupTimer()
     }
 
     private fun subscribeToStatistics(cubeType: CubeType) {
+
+        model.setCubeTypeFromPreferences(cubeType)
+        setupNewScramble()
+
+        if (observer != null) {
+            model.rubikStatistics.removeObserver(observer!!)
+            model.revengeStatistics.removeObserver(observer!!)
+            model.professorStatistics.removeObserver(observer!!)
+        }
+
+        observer =
+            Observer { data ->
+                val newData = mutableListOf<Record>()
+
+                for (i in 0 until data.size) {
+                    var ao5 = -1L
+                    var ao12 = -1L
+
+                    if (data.size - i >= 12) {
+                        ao12 = 0
+                        for (j in i..i + 11)
+                            ao12 += data[j].timeInMillis
+                        ao12 /= 12
+                    }
+
+                    if (data.size - i >= 5) {
+                        ao5 = 0
+                        var maxPos = i
+                        var minPos = i
+                        for (j in i + 1..i + 4) {
+                            if (data[j].timeInMillis > maxPos) maxPos = j
+                            if (data[j].timeInMillis < minPos) minPos = j
+                        }
+                        for (j in i..i + 4) {
+                            if (j != maxPos && j != minPos)
+                                ao5 += data[j].timeInMillis
+                        }
+                        ao5 /= 3
+                    }
+
+                    newData.add(
+                        Record(
+                            data.size - i, data[i].timeString, getTimerFormatString(ao5),
+                            getTimerFormatString(ao12), getDateFromTimeInMillis(data[i].realTimeInMillis)
+                        )
+                    )
+                }
+
+                statisticsRecyclerAdapter.swapData(newData)
+            }
+
         when (cubeType) {
-            CubeType.RUBIK -> model.rubikStatistics
+            CubeType.RUBIK -> model.rubikStatistics.observe(this, observer!!)
 
-            CubeType.REVENGE -> model.revengeStatistics
+            CubeType.REVENGE -> model.revengeStatistics.observe(this, observer!!)
 
-            CubeType.PROFESSOR -> model.professorStatistics
+            CubeType.PROFESSOR -> model.professorStatistics.observe(this, observer!!)
         }
     }
 
@@ -59,65 +120,70 @@ class MainActivity : AppCompatActivity() {
 
         holdingTimer = object : CountDownTimer(500, 500) {
             override fun onFinish() {
-                timerTextView.textColor = ContextCompat.getColor(this@MainActivity, R.color.ready)
-                ready = true
+                setTimerColor(this@MainActivity, R.color.ready)
+                model.ready = true
             }
 
             override fun onTick(millisUntilFinished: Long) {}
         }
 
-        actualTimer = object : CountDownTimer(600000, 1) {
+        actualTimer = object : CountDownTimer(MAX_TIMER_TIME, 1) {
             override fun onFinish() {
-                running = false
-                ready = false
+                model.running = false
+                model.ready = false
                 showConstraintLayout(true)
             }
 
             override fun onTick(millisUntilFinished: Long) {
                 showConstraintLayout(false)
-                running = true
-                val elapsed = 600000 - millisUntilFinished
-
-                var temp = if (elapsed / 60000 < 10) "0" else ""
-                temp += (elapsed / 60000).toString() + ":"
-                temp += (if (elapsed % 60000 / 1000 < 10) "0" else "") + (elapsed % 60000 / 1000).toString() + ":"
-                temp += if (elapsed % 1000 < 10) "0" else ""
-                temp += (if (elapsed % 1000 < 100) "0" else "") + elapsed % 1000
-                timerTextView.text = temp
+                model.running = true
+                model.currentTime = MAX_TIMER_TIME - millisUntilFinished
+                timerTextView.text = getTimerFormatString(MAX_TIMER_TIME - millisUntilFinished)
             }
         }
 
         timerTextView.setOnTouchListener { _, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
-                if (running) {
-                    saveToDb(timerTextView.text.toString())
-                    running = false
-                    ready = false
+                if (model.running) {
+                    model.insertStatistic(
+                        timerTextView.text.toString(),
+                        scrambleTextView.text.toString(),
+                        model.currentTime,
+                        System.currentTimeMillis()
+                    )
+                    model.running = false
+                    model.ready = false
                     actualTimer.cancel()
                     showConstraintLayout(true)
                 } else {
-                    timerTextView.text = getString(R.string.timer_place_holder)
-                    timerTextView.textColor = ContextCompat.getColor(this@MainActivity, R.color.not_ready)
+                    timerTextView.text = getTimerFormatString(0)
+                    setTimerColor(this, R.color.not_ready)
                     holdingTimer.start()
                 }
             } else if (event.action == MotionEvent.ACTION_UP) {
 
-                timerTextView.textColor = ContextCompat.getColor(this, R.color.headings)
-                if (ready) {
+                setTimerColor(this, R.color.headings)
+                if (model.ready) {
                     actualTimer.start()
                 } else {
                     holdingTimer.cancel()
                 }
             }
 
-            Log.v(":::", event.toString())
-
             true
         }
     }
 
-    private fun saveToDb(currentTime: String) {
-        // TODO: Implement this
+    private fun setupNewScramble() {
+        scrambleTextView.text = when (model.currentCubeType) {
+            CubeType.RUBIK -> generate3x3Scramble()
+            CubeType.REVENGE -> generate4x4Scramble()
+            CubeType.PROFESSOR -> generate5x5Scramble()
+        }
+    }
+
+    private fun setTimerColor(context: Context, colorId: Int) {
+        timerTextView.textColor = ContextCompat.getColor(context, colorId)
     }
 
     private fun showConstraintLayout(showLayout: Boolean) {
@@ -143,7 +209,13 @@ class MainActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
+    override fun onPause() {
+        super.onPause()
+        preferences.edit().putInt(CUBE_TYPE_KEY, model.currentCubeType.ordinal).apply()
+    }
+
     companion object {
         private const val CUBE_TYPE_KEY = "cube-type-key"
+        private const val MAX_TIMER_TIME = 600000L
     }
 }
