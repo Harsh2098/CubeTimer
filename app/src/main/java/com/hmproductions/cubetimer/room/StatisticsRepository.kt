@@ -14,4 +14,9 @@ class StatisticsRepository(private val statisticsDao: StatisticsDao) {
     fun insert(statistic: Statistic) {
         statisticsDao.insertStatistic(statistic)
     }
+
+    @WorkerThread
+    fun delete(dbId: Long) {
+        statisticsDao.deleteStatistic(dbId)
+    }
 }

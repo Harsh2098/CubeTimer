@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -16,10 +17,16 @@ public class StatisticsRecyclerAdapter extends RecyclerView.Adapter<StatisticsRe
 
     private Context context;
     private List<Record> list;
+    private OnStatisticClickListener listener;
 
-    public StatisticsRecyclerAdapter(Context context, List<Record> list) {
+    public interface OnStatisticClickListener {
+        void onStatsDeleteClick(long dbId);
+    }
+
+    public StatisticsRecyclerAdapter(Context context, List<Record> list, OnStatisticClickListener listener) {
         this.context = context;
         this.list = list;
+        this.listener = listener;
     }
 
     @NonNull
@@ -36,6 +43,19 @@ public class StatisticsRecyclerAdapter extends RecyclerView.Adapter<StatisticsRe
         holder.timeTextView.setText(currentStats.getTime());
         holder.ao5TextView.setText(currentStats.getAo5());
         holder.ao12TextView.setText(currentStats.getAo12());
+        holder.scrambleTextView.setText(currentStats.getScramble());
+        holder.dateTextView.setText(currentStats.getDateString());
+
+        holder.itemView.setOnClickListener(v -> {
+            boolean expanded = currentStats.getExpanded();
+
+            holder.scrambleTextView.setVisibility(expanded ? View.GONE : View.VISIBLE);
+            holder.deleteImageView.setVisibility(expanded ? View.GONE : View.VISIBLE);
+            holder.dateTextView.setVisibility(expanded ? View.GONE : View.VISIBLE);
+
+            currentStats.setExpanded(!expanded);
+            notifyItemChanged(position);
+        });
     }
 
     @Override
@@ -44,19 +64,26 @@ public class StatisticsRecyclerAdapter extends RecyclerView.Adapter<StatisticsRe
         return list.size();
     }
 
-    public void insertNewStatistic(Record newStats) {
-        list.add(0, newStats);
-        notifyItemInserted(0);
-    }
-
     public void swapData(List<Record> newData) {
-        list = newData;
-        notifyDataSetChanged();
+        if (list == null) {
+            list = newData;
+            notifyDataSetChanged();
+        } else if (list.size() + 1 == newData.size()) {
+            list = newData;
+            notifyItemInserted(0);
+        } else if (list.size() - 1 == newData.size()) {
+            list = newData;
+            notifyItemRemoved(0);
+        } else {
+            list = newData;
+            notifyDataSetChanged();
+        }
     }
 
-    class StatsViewHolder extends RecyclerView.ViewHolder {
+    class StatsViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-        TextView idTextView, timeTextView, ao5TextView, ao12TextView;
+        TextView idTextView, timeTextView, ao5TextView, ao12TextView, scrambleTextView, dateTextView;
+        ImageView deleteImageView;
 
         StatsViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -64,6 +91,16 @@ public class StatisticsRecyclerAdapter extends RecyclerView.Adapter<StatisticsRe
             timeTextView = itemView.findViewById(R.id.timeTextView);
             ao5TextView = itemView.findViewById(R.id.ao5TextView);
             ao12TextView = itemView.findViewById(R.id.ao12TextView);
+            scrambleTextView = itemView.findViewById(R.id.listItemScrambleTextView);
+            dateTextView = itemView.findViewById(R.id.dateTextView);
+            deleteImageView = itemView.findViewById(R.id.deleteImageView);
+
+            deleteImageView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            listener.onStatsDeleteClick(list.get(getAdapterPosition()).getDbId());
         }
     }
 }

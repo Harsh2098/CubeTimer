@@ -24,5 +24,5 @@ fun getTimerFormatString(elapsed: Long): String {
 }
 
 fun getDateFromTimeInMillis(timeInMillis: Long) : String {
-    return SimpleDateFormat("dd MMM HH:mm", Locale.US).format(Date(timeInMillis))
+    return SimpleDateFormat("dd MMM HH:mm a", Locale.US).format(Date(timeInMillis))
 }

@@ -42,6 +42,10 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
 
     fun insertStatistic(time: String, scramble: String, timerInMillis: Long, currentTimeInMillis: Long) =
         scope.launch(Dispatchers.IO) {
-        repository.insert(Statistic(0, timerInMillis, time, scramble, currentTimeInMillis, currentCubeType))
+            repository.insert(Statistic(0, timerInMillis, time, scramble, currentTimeInMillis, currentCubeType))
+        }
+
+    fun deleteStatistic(dbId: Long) = scope.launch(Dispatchers.IO) {
+        repository.delete(dbId)
     }
 }

@@ -7,7 +7,8 @@ import androidx.room.PrimaryKey
 class Statistic(@PrimaryKey(autoGenerate = true) val id: Long, val timeInMillis: Long, val timeString: String, val scramble: String,
                 val realTimeInMillis: Long, val cubeType: CubeType)
 
-data class Record(val number: Int, val time: String, val ao5: String, val ao12: String, val dateString: String)
+data class Record(val dbId: Long, val number: Int, val time: String, val ao5: String, val ao12: String, val scramble: String,
+                  val dateString: String, var expanded: Boolean)
 
 enum class CubeType {
     RUBIK, REVENGE, PROFESSOR

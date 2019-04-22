@@ -14,6 +14,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.SimpleItemAnimator
 import com.hmproductions.cubetimer.data.CubeType
 import com.hmproductions.cubetimer.data.Record
 import com.hmproductions.cubetimer.data.Statistic
@@ -25,7 +26,7 @@ import com.hmproductions.cubetimer.utils.getTimerFormatString
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.textColor
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticClickListener {
 
     private lateinit var model: StatisticsViewModel
     private lateinit var preferences: SharedPreferences
@@ -41,14 +42,16 @@ class MainActivity : AppCompatActivity() {
 
         model = ViewModelProviders.of(this).get(StatisticsViewModel::class.java)
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
-        statisticsRecyclerAdapter = StatisticsRecyclerAdapter(this, null)
+        statisticsRecyclerAdapter = StatisticsRecyclerAdapter(this, null, this)
 
-        statsRecyclerView.layoutManager = LinearLayoutManager(this)
-        statsRecyclerView.setHasFixedSize(false)
-        statsRecyclerView.adapter = statisticsRecyclerAdapter
+        with(statsRecyclerView) {
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            setHasFixedSize(false)
+            adapter = statisticsRecyclerAdapter
+            (this.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
+        }
 
         with(CubeType.values()[preferences.getInt(CUBE_TYPE_KEY, 0)]) {
-            model.setCubeTypeFromPreferences(this)
             subscribeToStatistics(this)
         }
 
@@ -98,12 +101,11 @@ class MainActivity : AppCompatActivity() {
 
                     newData.add(
                         Record(
-                            data.size - i, data[i].timeString, getTimerFormatString(ao5),
-                            getTimerFormatString(ao12), getDateFromTimeInMillis(data[i].realTimeInMillis)
+                            data[i].id, data.size - i, data[i].timeString, getTimerFormatString(ao5), getTimerFormatString(ao12),
+                            data[i].scramble, getDateFromTimeInMillis(data[i].realTimeInMillis), false
                         )
                     )
                 }
-
                 statisticsRecyclerAdapter.swapData(newData)
             }
 
@@ -153,6 +155,8 @@ class MainActivity : AppCompatActivity() {
                     )
                     model.running = false
                     model.ready = false
+
+                    setupNewScramble()
                     actualTimer.cancel()
                     showConstraintLayout(true)
                 } else {
@@ -188,6 +192,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun showConstraintLayout(showLayout: Boolean) {
         statisticsConstraintLayout.visibility = if (showLayout) View.VISIBLE else View.INVISIBLE
+    }
+
+    override fun onStatsDeleteClick(dbId: Long) {
+        model.deleteStatistic(dbId)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

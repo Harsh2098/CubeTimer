@@ -4,8 +4,9 @@
     <color name="colorPrimaryDark">#00227b</color>
     <color name="colorAccent">#fdd835</color>
     <color name="headings">#000000</color>
-    <color name="neutral_color">#777777</color>
+    <color name="neutral_color">#333333</color>
 
     <color name="not_ready">#FF0000</color>
     <color name="ready">#39FF14</color>
+    <color name="white">#FFFFFF</color>
 </resources>
