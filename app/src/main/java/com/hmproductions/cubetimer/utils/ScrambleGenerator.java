@@ -8,6 +8,7 @@ public class ScrambleGenerator {
 
     public static String generate3x3Scramble() {
 
+
         String[] moves = {
                 "F", "R", "U", "D", "L", "B", "F'", "R'", "U'", "D'", "L'", "B'",
                 "F2", "R2", "U2", "D2", "L2", "B2"};
