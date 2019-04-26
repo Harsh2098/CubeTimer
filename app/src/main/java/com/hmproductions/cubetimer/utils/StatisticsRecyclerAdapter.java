@@ -15,12 +15,17 @@ import java.util.List;
 
 public class StatisticsRecyclerAdapter extends RecyclerView.Adapter<StatisticsRecyclerAdapter.StatsViewHolder> {
 
+    private static final int NORMAL_VIEW_TYPE = 1;
+    private static final int EXPANDED_VIEW_TYPE = 2;
+
     private Context context;
     private List<Record> list;
     private OnStatisticClickListener listener;
+    private int expandedItemPosition = -1;
 
     public interface OnStatisticClickListener {
-        void onStatsDeleteClick(long dbId);
+        void onStatsDeleteClick(long dbId, int position);
+        void smoothScrollToTop();
     }
 
     public StatisticsRecyclerAdapter(Context context, List<Record> list, OnStatisticClickListener listener) {
@@ -32,7 +37,12 @@ public class StatisticsRecyclerAdapter extends RecyclerView.Adapter<StatisticsRe
     @NonNull
     @Override
     public StatsViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new StatsViewHolder(LayoutInflater.from(context).inflate(R.layout.stats_list_item, parent, false));
+        if (viewType == NORMAL_VIEW_TYPE)
+            return new StatsViewHolder(LayoutInflater.from(context).inflate(R.layout.stats_list_item, parent, false),
+                    viewType);
+        else
+            return new StatsViewHolder(LayoutInflater.from(context).inflate(R.layout.stats_expanded_list_item, parent, false),
+                    viewType);
     }
 
     @Override
@@ -43,19 +53,11 @@ public class StatisticsRecyclerAdapter extends RecyclerView.Adapter<StatisticsRe
         holder.timeTextView.setText(currentStats.getTime());
         holder.ao5TextView.setText(currentStats.getAo5());
         holder.ao12TextView.setText(currentStats.getAo12());
-        holder.scrambleTextView.setText(currentStats.getScramble());
-        holder.dateTextView.setText(currentStats.getDateString());
 
-        holder.itemView.setOnClickListener(v -> {
-            boolean expanded = currentStats.getExpanded();
-
-            holder.scrambleTextView.setVisibility(expanded ? View.GONE : View.VISIBLE);
-            holder.deleteImageView.setVisibility(expanded ? View.GONE : View.VISIBLE);
-            holder.dateTextView.setVisibility(expanded ? View.GONE : View.VISIBLE);
-
-            currentStats.setExpanded(!expanded);
-            notifyItemChanged(position);
-        });
+        if (getItemViewType(position) == EXPANDED_VIEW_TYPE) {
+            holder.scrambleTextView.setText(currentStats.getScramble());
+            holder.dateTextView.setText(currentStats.getDateString());
+        }
     }
 
     @Override
@@ -64,18 +66,23 @@ public class StatisticsRecyclerAdapter extends RecyclerView.Adapter<StatisticsRe
         return list.size();
     }
 
-    public void swapData(List<Record> newData) {
+    @Override
+    public int getItemViewType(int position) {
+        if (position == expandedItemPosition) return EXPANDED_VIEW_TYPE;
+        return NORMAL_VIEW_TYPE;
+    }
+
+    public void swapData(List<Record> newData, int position) {
         if (list == null) {
             list = newData;
             notifyDataSetChanged();
         } else if (list.size() + 1 == newData.size()) {
             list = newData;
-            notifyItemInserted(0);
-        } else if (list.size() - 1 == newData.size()) {
-            list = newData;
-            notifyItemRemoved(0);
+            listener.smoothScrollToTop();
+            notifyItemInserted(position);
         } else {
             list = newData;
+            expandedItemPosition = -1;
             notifyDataSetChanged();
         }
     }
@@ -85,22 +92,38 @@ public class StatisticsRecyclerAdapter extends RecyclerView.Adapter<StatisticsRe
         TextView idTextView, timeTextView, ao5TextView, ao12TextView, scrambleTextView, dateTextView;
         ImageView deleteImageView;
 
-        StatsViewHolder(@NonNull View itemView) {
+        StatsViewHolder(@NonNull View itemView, int viewType) {
             super(itemView);
             idTextView = itemView.findViewById(R.id.idTextView);
             timeTextView = itemView.findViewById(R.id.timeTextView);
             ao5TextView = itemView.findViewById(R.id.ao5TextView);
             ao12TextView = itemView.findViewById(R.id.ao12TextView);
-            scrambleTextView = itemView.findViewById(R.id.listItemScrambleTextView);
-            dateTextView = itemView.findViewById(R.id.dateTextView);
-            deleteImageView = itemView.findViewById(R.id.deleteImageView);
 
-            deleteImageView.setOnClickListener(this);
+            if (viewType == EXPANDED_VIEW_TYPE) {
+                scrambleTextView = itemView.findViewById(R.id.listItemScrambleTextView);
+                dateTextView = itemView.findViewById(R.id.dateTextView);
+                deleteImageView = itemView.findViewById(R.id.deleteImageView);
+
+                deleteImageView.setOnClickListener(this);
+            }
+
+            itemView.setOnClickListener(v -> {
+                if (expandedItemPosition == getAdapterPosition()) {
+                    expandedItemPosition = -1;
+                    notifyItemChanged(getAdapterPosition());
+                } else /* else expand item */ {
+                    int oldPosition = expandedItemPosition;
+                    expandedItemPosition = getAdapterPosition();
+                    notifyItemChanged(expandedItemPosition);
+                    notifyItemChanged(oldPosition);
+                }
+            });
         }
 
         @Override
         public void onClick(View v) {
-            listener.onStatsDeleteClick(list.get(getAdapterPosition()).getDbId());
+            int position = getAdapterPosition();
+            listener.onStatsDeleteClick(list.get(position).getDbId(), position);
         }
     }
 }

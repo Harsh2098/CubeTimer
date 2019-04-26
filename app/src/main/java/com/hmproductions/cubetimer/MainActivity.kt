@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.preference.PreferenceManager
+import android.util.DisplayMetrics
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
@@ -14,7 +15,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.SimpleItemAnimator
+import androidx.recyclerview.widget.LinearSmoothScroller
 import com.hmproductions.cubetimer.data.CubeType
 import com.hmproductions.cubetimer.data.Record
 import com.hmproductions.cubetimer.data.Statistic
@@ -36,6 +37,8 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
     private lateinit var actualTimer: CountDownTimer
     private var observer: Observer<List<Statistic>>? = null
 
+    private var lastPositionModified = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -48,7 +51,7 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
             layoutManager = LinearLayoutManager(this@MainActivity)
             setHasFixedSize(false)
             adapter = statisticsRecyclerAdapter
-            (this.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
+            //itemAnimator = ExpandAnimator()
         }
 
         with(CubeType.values()[preferences.getInt(CUBE_TYPE_KEY, 0)]) {
@@ -72,8 +75,13 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
         observer =
             Observer { data ->
                 val newData = mutableListOf<Record>()
+                var bestAo12 = Long.MAX_VALUE
+                var bestAo5 = Long.MAX_VALUE
+                var bestTime = Long.MAX_VALUE
+                var bestMo3 = Long.MAX_VALUE
 
                 for (i in 0 until data.size) {
+                    var mo3 = -1L
                     var ao5 = -1L
                     var ao12 = -1L
 
@@ -99,14 +107,50 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
                         ao5 /= 3
                     }
 
+                    if (data.size - i >= 3) {
+                        mo3 = 0
+                        for (j in i..i + 2)
+                            mo3 += data[j].timeInMillis
+                        mo3 /= 3
+                    }
+
+                    if (bestAo12 > ao12 && ao12 != -1L)
+                        bestAo12 = ao12
+                    if (bestAo5 > ao5 && ao5 != -1L)
+                        bestAo5 = ao5
+                    if (bestMo3 > mo3 && mo3 != -1L)
+                        bestMo3 = mo3
+                    if (bestTime > data[i].timeInMillis)
+                        bestTime = data[i].timeInMillis
+
                     newData.add(
                         Record(
-                            data[i].id, data.size - i, data[i].timeString, getTimerFormatString(ao5), getTimerFormatString(ao12),
-                            data[i].scramble, getDateFromTimeInMillis(data[i].realTimeInMillis), false
+                            data[i].id,
+                            data.size - i,
+                            data[i].timeString,
+                            getTimerFormatString(mo3),
+                            getTimerFormatString(ao5),
+                            getTimerFormatString(ao12),
+                            data[i].scramble,
+                            getDateFromTimeInMillis(data[i].realTimeInMillis)
                         )
                     )
                 }
-                statisticsRecyclerAdapter.swapData(newData)
+
+                if (newData.size > 0) {
+                    currentTimeTextView.text = newData[0].time
+                    currentAvg5TextView.text = newData[0].ao5
+                    currentAvg12TextView.text = newData[0].ao12
+                    currentMean3TextView.text = newData[0].mo3
+
+                    bestAvg12TextView.text = getTimerFormatString(bestAo12)
+                    bestTimeTextView.text = getTimerFormatString(bestTime)
+                    bestAvg5TextView.text = getTimerFormatString(bestAo5)
+                    bestMo3TextView.text = getTimerFormatString(bestMo3)
+                }
+
+                statisticsRecyclerAdapter.swapData(newData, lastPositionModified)
+                lastPositionModified = 0
             }
 
         when (cubeType) {
@@ -194,8 +238,24 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
         statisticsConstraintLayout.visibility = if (showLayout) View.VISIBLE else View.INVISIBLE
     }
 
-    override fun onStatsDeleteClick(dbId: Long) {
+    override fun onStatsDeleteClick(dbId: Long, position: Int) {
+        lastPositionModified = position
         model.deleteStatistic(dbId)
+    }
+
+    override fun smoothScrollToTop() {
+        val smoothScroller = object : LinearSmoothScroller(this) {
+            override fun getVerticalSnapPreference(): Int {
+                return SNAP_TO_START
+            }
+
+            override fun calculateSpeedPerPixel(displayMetrics: DisplayMetrics): Float {
+                return 1000F / displayMetrics.densityDpi;
+            }
+        }
+
+        smoothScroller.targetPosition = 0
+        statsRecyclerView.layoutManager?.startSmoothScroll(smoothScroller)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

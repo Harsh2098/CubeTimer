@@ -17,6 +17,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     val rubikStatistics: LiveData<List<Statistic>>
     val revengeStatistics: LiveData<List<Statistic>>
     val professorStatistics: LiveData<List<Statistic>>
+    val bestTime: LiveData<Long>
 
     var running = false
     var ready = false
@@ -34,6 +35,8 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
         rubikStatistics = repository.rubikStatistics
         revengeStatistics = repository.revengeStatistics
         professorStatistics = repository.professorStatistics
+
+        bestTime = repository.bestTime
     }
 
     fun setCubeTypeFromPreferences(cubeType: CubeType) {

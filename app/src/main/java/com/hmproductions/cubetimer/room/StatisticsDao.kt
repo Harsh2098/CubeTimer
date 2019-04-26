@@ -18,6 +18,9 @@ interface StatisticsDao {
     @Query("SELECT * from cube_statistics WHERE cubeType=\"PROFESSOR\" ORDER BY realTimeInMillis DESC")
     fun get5x5Statistics(): LiveData<List<Statistic>>
 
+    @Query("SELECT MIN(timeInMillis) FROM cube_statistics")
+    fun getBestTime(): LiveData<Long>
+
     @Insert
     fun insertStatistic(statistic: Statistic)
 

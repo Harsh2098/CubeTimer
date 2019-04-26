@@ -77,7 +77,7 @@
             android:layout_marginTop="8dp"
             android:text="@string/mo3"
             android:textSize="18sp"
-            app:layout_constraintBottom_toTopOf="@+id/currentAvg3TextView"
+            app:layout_constraintBottom_toTopOf="@+id/currentAvg5TextView"
             app:layout_constraintEnd_toStartOf="@+id/bestMo3TextView"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintHorizontal_chainStyle="spread_inside"
@@ -85,7 +85,7 @@
             app:layout_constraintTop_toBottomOf="@+id/currentTimeTextView" />
 
         <TextView
-            android:id="@+id/currentAvg3TextView"
+            android:id="@+id/currentAvg5TextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -93,7 +93,7 @@
             android:text="@string/ao5"
             android:textSize="18sp"
             app:layout_constraintBottom_toTopOf="@+id/currentAvg12TextView"
-            app:layout_constraintEnd_toStartOf="@+id/bestAvg3TextView"
+            app:layout_constraintEnd_toStartOf="@+id/bestAvg5TextView"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintHorizontal_chainStyle="spread_inside"
             app:layout_constraintStart_toStartOf="parent"
@@ -111,7 +111,7 @@
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintHorizontal_chainStyle="spread_inside"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/currentAvg3TextView" />
+            app:layout_constraintTop_toBottomOf="@+id/currentAvg5TextView" />
 
         <TextView
             android:id="@+id/bestTextView"
@@ -151,14 +151,14 @@
             android:layout_marginEnd="8dp"
             android:text="@string/mo3"
             android:textSize="18sp"
-            app:layout_constraintBottom_toTopOf="@+id/bestAvg3TextView"
+            app:layout_constraintBottom_toTopOf="@+id/bestAvg5TextView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/currentMean3TextView"
             app:layout_constraintTop_toBottomOf="@+id/bestTimeTextView" />
 
         <TextView
-            android:id="@+id/bestAvg3TextView"
+            android:id="@+id/bestAvg5TextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -168,7 +168,7 @@
             app:layout_constraintBottom_toTopOf="@+id/bestAvg12TextView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/currentAvg3TextView"
+            app:layout_constraintStart_toEndOf="@+id/currentAvg5TextView"
             app:layout_constraintTop_toBottomOf="@+id/bestMo3TextView" />
 
         <TextView
@@ -182,7 +182,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/currentAvg12TextView"
-            app:layout_constraintTop_toBottomOf="@+id/bestAvg3TextView" />
+            app:layout_constraintTop_toBottomOf="@+id/bestAvg5TextView" />
 
         <TextView
             android:id="@+id/scrambleTextView"
@@ -229,11 +229,5 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.45" />
-
-    <androidx.cardview.widget.CardView
-        android:layout_width="395dp"
-        android:layout_height="wrap_content"
-        tools:layout_editor_absoluteX="8dp"
-        tools:layout_editor_absoluteY="-53dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

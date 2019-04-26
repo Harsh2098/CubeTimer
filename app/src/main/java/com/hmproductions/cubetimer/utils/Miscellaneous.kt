@@ -5,7 +5,7 @@ import java.util.*
 
 fun getTimerFormatString(elapsed: Long): String {
 
-    if (elapsed == -1L) return "-"
+    if (elapsed == -1L || elapsed == Long.MAX_VALUE) return "-"
 
     var temp = if (elapsed / 60000 > 0) {
         if (elapsed / 60000 < 10) {

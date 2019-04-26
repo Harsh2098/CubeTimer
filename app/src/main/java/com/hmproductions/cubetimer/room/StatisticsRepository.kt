@@ -10,6 +10,8 @@ class StatisticsRepository(private val statisticsDao: StatisticsDao) {
     val rubikStatistics: LiveData<List<Statistic>> = statisticsDao.get3x3Statistics()
     val professorStatistics: LiveData<List<Statistic>> = statisticsDao.get5x5Statistics()
 
+    val bestTime: LiveData<Long> = statisticsDao.getBestTime()
+
     @WorkerThread
     fun insert(statistic: Statistic) {
         statisticsDao.insertStatistic(statistic)
