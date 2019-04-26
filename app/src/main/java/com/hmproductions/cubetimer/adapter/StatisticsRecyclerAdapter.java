@@ -1,4 +1,4 @@
-package com.hmproductions.cubetimer.utils;
+package com.hmproductions.cubetimer.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -80,6 +80,11 @@ public class StatisticsRecyclerAdapter extends RecyclerView.Adapter<StatisticsRe
             list = newData;
             listener.smoothScrollToTop();
             notifyItemInserted(position);
+        } else if (list.size() - 1 == newData.size()) {
+            list = newData;
+            notifyItemRemoved(position);
+            notifyItemRangeChanged(0, expandedItemPosition);
+            expandedItemPosition = -1;
         } else {
             list = newData;
             expandedItemPosition = -1;

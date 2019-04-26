@@ -5,23 +5,19 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.preference.PreferenceManager
-import android.util.DisplayMetrics
-import android.view.Menu
-import android.view.MenuItem
-import android.view.MotionEvent
-import android.view.View
+import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.LinearSmoothScroller
+import com.hmproductions.cubetimer.adapter.StatisticsRecyclerAdapter
 import com.hmproductions.cubetimer.data.CubeType
 import com.hmproductions.cubetimer.data.Record
 import com.hmproductions.cubetimer.data.Statistic
 import com.hmproductions.cubetimer.data.StatisticsViewModel
 import com.hmproductions.cubetimer.utils.ScrambleGenerator.*
-import com.hmproductions.cubetimer.utils.StatisticsRecyclerAdapter
+import com.hmproductions.cubetimer.utils.SlowSmoothScroller
 import com.hmproductions.cubetimer.utils.getDateFromTimeInMillis
 import com.hmproductions.cubetimer.utils.getTimerFormatString
 import kotlinx.android.synthetic.main.activity_main.*
@@ -51,7 +47,6 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
             layoutManager = LinearLayoutManager(this@MainActivity)
             setHasFixedSize(false)
             adapter = statisticsRecyclerAdapter
-            //itemAnimator = ExpandAnimator()
         }
 
         with(CubeType.values()[preferences.getInt(CUBE_TYPE_KEY, 0)]) {
@@ -85,6 +80,7 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
                     var ao5 = -1L
                     var ao12 = -1L
 
+                    // Calculate average of last 12 solves
                     if (data.size - i >= 12) {
                         ao12 = 0
                         for (j in i..i + 11)
@@ -92,6 +88,7 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
                         ao12 /= 12
                     }
 
+                    // Calculate average of last 5 solves by removing best and worst time (official WCA rules)
                     if (data.size - i >= 5) {
                         ao5 = 0
                         var maxPos = i
@@ -107,6 +104,7 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
                         ao5 /= 3
                     }
 
+                    // Calculate mean of last 3 solves
                     if (data.size - i >= 3) {
                         mo3 = 0
                         for (j in i..i + 2)
@@ -114,6 +112,7 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
                         mo3 /= 3
                     }
 
+                    // Find out best time, mo3, ao5, ao12
                     if (bestAo12 > ao12 && ao12 != -1L)
                         bestAo12 = ao12
                     if (bestAo5 > ao5 && ao5 != -1L)
@@ -236,6 +235,13 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
 
     private fun showConstraintLayout(showLayout: Boolean) {
         statisticsConstraintLayout.visibility = if (showLayout) View.VISIBLE else View.INVISIBLE
+
+        timerTextView.layoutParams.height =
+            if (showLayout)
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            else
+                ViewGroup.LayoutParams.MATCH_PARENT
+        timerTextView.requestLayout()
     }
 
     override fun onStatsDeleteClick(dbId: Long, position: Int) {
@@ -244,18 +250,7 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
     }
 
     override fun smoothScrollToTop() {
-        val smoothScroller = object : LinearSmoothScroller(this) {
-            override fun getVerticalSnapPreference(): Int {
-                return SNAP_TO_START
-            }
-
-            override fun calculateSpeedPerPixel(displayMetrics: DisplayMetrics): Float {
-                return 1000F / displayMetrics.densityDpi;
-            }
-        }
-
-        smoothScroller.targetPosition = 0
-        statsRecyclerView.layoutManager?.startSmoothScroll(smoothScroller)
+        statsRecyclerView.layoutManager?.startSmoothScroll(SlowSmoothScroller(this))
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
