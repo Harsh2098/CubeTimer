@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import com.hmproductions.cubetimer.room.StatisticsRepository
 import com.hmproductions.cubetimer.room.StatisticsRoomDatabase
+import com.hmproductions.cubetimer.utils.CubeConverter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -50,5 +51,9 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
 
     fun deleteStatistic(dbId: Long) = scope.launch(Dispatchers.IO) {
         repository.delete(dbId)
+    }
+
+    fun deleteCurrentCubeType() = scope.launch(Dispatchers.IO) {
+        repository.deleteCubeType(currentCubeType)
     }
 }

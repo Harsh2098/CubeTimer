@@ -1,11 +1,13 @@
 package com.hmproductions.cubetimer
 
 import android.content.Context
+import android.content.DialogInterface
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.preference.PreferenceManager
 import android.view.*
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
@@ -267,6 +269,16 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
             R.id.revenge_action -> subscribeToStatistics(CubeType.REVENGE)
 
             R.id.professor_action -> subscribeToStatistics(CubeType.PROFESSOR)
+
+            R.id.delete_current_type -> {
+                AlertDialog.Builder(this)
+                    .setTitle("Permanent delete")
+                    .setCancelable(true)
+                    .setMessage("Do you want to permanently delete current cube times?")
+                    .setPositiveButton(R.string.delete) { _: DialogInterface, _: Int -> model.deleteCurrentCubeType() }
+                    .setNegativeButton(R.string.cancel) { dI: DialogInterface, _: Int -> dI.dismiss() }
+                    .show()
+            }
         }
 
         return super.onOptionsItemSelected(item)

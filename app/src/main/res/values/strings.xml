@@ -13,4 +13,6 @@
     <string name="timer_place_holder">00.000</string>
     <string name="delete_icon">Delete icon</string>
     <string name="no">No.</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
 </resources>

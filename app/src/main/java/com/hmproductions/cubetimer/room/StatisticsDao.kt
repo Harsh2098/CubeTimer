@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import com.hmproductions.cubetimer.data.CubeType
 import com.hmproductions.cubetimer.data.Statistic
 
 @Dao
@@ -26,4 +27,7 @@ interface StatisticsDao {
 
     @Query("DELETE FROM cube_statistics WHERE id=:dbId")
     fun deleteStatistic(dbId: Long)
+
+    @Query("DELETE FROM cube_statistics WHERE cubeType=:cubeType")
+    fun deleteCubeTypeStatistics(cubeType: CubeType)
 }

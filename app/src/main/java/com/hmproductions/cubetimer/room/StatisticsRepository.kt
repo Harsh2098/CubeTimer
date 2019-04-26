@@ -2,6 +2,7 @@ package com.hmproductions.cubetimer.room
 
 import androidx.annotation.WorkerThread
 import androidx.lifecycle.LiveData
+import com.hmproductions.cubetimer.data.CubeType
 import com.hmproductions.cubetimer.data.Statistic
 
 class StatisticsRepository(private val statisticsDao: StatisticsDao) {
@@ -20,5 +21,10 @@ class StatisticsRepository(private val statisticsDao: StatisticsDao) {
     @WorkerThread
     fun delete(dbId: Long) {
         statisticsDao.deleteStatistic(dbId)
+    }
+
+    @WorkerThread
+    fun deleteCubeType(cubeType: CubeType) {
+        statisticsDao.deleteCubeTypeStatistics(cubeType)
     }
 }

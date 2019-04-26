@@ -17,4 +17,10 @@
         android:title="@string/_5x5"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/delete_current_type"
+        android:icon="@drawable/delete_icon_white"
+        android:title="@string/delete"
+        app:showAsAction="ifRoom" />
+
 </menu>
