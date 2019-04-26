@@ -9,4 +9,5 @@
     <color name="not_ready">#FF0000</color>
     <color name="ready">#39FF14</color>
     <color name="white">#FFFFFF</color>
+    <color name="green_tint">#f1fff9</color>
 </resources>
