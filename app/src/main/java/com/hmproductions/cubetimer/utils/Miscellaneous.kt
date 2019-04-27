@@ -45,7 +45,8 @@ fun getRefinedEntries(oldEntries: MutableList<Entry>): MutableList<Entry> {
         }
     }
 
-    newEntries.add(oldEntries[oldEntries.size - 1])
+    if(oldEntries.size > 1)
+        newEntries.add(oldEntries[oldEntries.size - 1])
 
     return newEntries
 }
