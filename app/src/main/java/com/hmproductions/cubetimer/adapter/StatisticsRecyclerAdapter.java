@@ -13,6 +13,8 @@ import com.hmproductions.cubetimer.data.Record;
 
 import java.util.List;
 
+import static com.hmproductions.cubetimer.utils.MiscellaneousKt.getTimerFormatString;
+
 public class StatisticsRecyclerAdapter extends RecyclerView.Adapter<StatisticsRecyclerAdapter.StatsViewHolder> {
 
     private static final int NORMAL_VIEW_TYPE = 1;
@@ -50,9 +52,9 @@ public class StatisticsRecyclerAdapter extends RecyclerView.Adapter<StatisticsRe
         Record currentStats = list.get(position);
 
         holder.idTextView.setText(String.valueOf(currentStats.getNumber()));
-        holder.timeTextView.setText(currentStats.getTime());
-        holder.ao5TextView.setText(currentStats.getAo5());
-        holder.ao12TextView.setText(currentStats.getAo12());
+        holder.timeTextView.setText(getTimerFormatString(currentStats.getTime()));
+        holder.ao5TextView.setText(getTimerFormatString(currentStats.getAo5()));
+        holder.ao12TextView.setText(getTimerFormatString(currentStats.getAo12()));
 
         if (getItemViewType(position) == EXPANDED_VIEW_TYPE) {
             holder.scrambleTextView.setText(currentStats.getScramble());

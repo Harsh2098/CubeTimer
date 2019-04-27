@@ -44,9 +44,9 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
         currentCubeType = cubeType
     }
 
-    fun insertStatistic(time: String, scramble: String, timerInMillis: Long, currentTimeInMillis: Long) =
+    fun insertStatistic(scramble: String, timerInMillis: Long, currentTimeInMillis: Long) =
         scope.launch(Dispatchers.IO) {
-            repository.insert(Statistic(0, timerInMillis, time, scramble, currentTimeInMillis, currentCubeType))
+            repository.insert(Statistic(0, timerInMillis, scramble, currentTimeInMillis, currentCubeType))
         }
 
     fun deleteStatistic(dbId: Long) = scope.launch(Dispatchers.IO) {

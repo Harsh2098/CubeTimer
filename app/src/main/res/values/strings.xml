@@ -15,4 +15,7 @@
     <string name="no">No.</string>
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
+    <string name="bottom_sheet_behavior" translatable="false">com.google.android.material.bottomsheet.BottomSheetBehavior</string>
+    <string name="graph">Graph</string>
+    <string name="nudge_icon">nudge icon</string>
 </resources>

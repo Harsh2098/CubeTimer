@@ -9,21 +9,29 @@ import android.preference.PreferenceManager
 import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.components.YAxis
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.utils.EntryXComparator
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.hmproductions.cubetimer.adapter.StatisticsRecyclerAdapter
 import com.hmproductions.cubetimer.data.CubeType
 import com.hmproductions.cubetimer.data.Record
 import com.hmproductions.cubetimer.data.Statistic
 import com.hmproductions.cubetimer.data.StatisticsViewModel
+import com.hmproductions.cubetimer.utils.*
 import com.hmproductions.cubetimer.utils.ScrambleGenerator.*
-import com.hmproductions.cubetimer.utils.SlowSmoothScroller
-import com.hmproductions.cubetimer.utils.getDateFromTimeInMillis
-import com.hmproductions.cubetimer.utils.getTimerFormatString
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.graph_layout.*
 import org.jetbrains.anko.textColor
+import java.util.*
 
 class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticClickListener {
 
@@ -34,6 +42,8 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
     private lateinit var holdingTimer: CountDownTimer
     private lateinit var actualTimer: CountDownTimer
     private var observer: Observer<List<Statistic>>? = null
+
+    private lateinit var bottomSheetBehaviour: BottomSheetBehavior<CardView>
 
     private var lastPositionModified = 0
 
@@ -56,6 +66,8 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
         }
 
         setupTimer()
+        bottomSheetBehaviour = BottomSheetBehavior.from(timesBottomSheet)
+        bottomSheetBehaviour.state = BottomSheetBehavior.STATE_HIDDEN
     }
 
     private fun subscribeToStatistics(cubeType: CubeType) {
@@ -128,10 +140,10 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
                         Record(
                             data[i].id,
                             data.size - i,
-                            data[i].timeString,
-                            getTimerFormatString(mo3),
-                            getTimerFormatString(ao5),
-                            getTimerFormatString(ao12),
+                            data[i].timeInMillis,
+                            mo3,
+                            ao5,
+                            ao12,
                             data[i].scramble,
                             getDateFromTimeInMillis(data[i].realTimeInMillis)
                         )
@@ -139,10 +151,10 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
                 }
 
                 if (newData.size > 0) {
-                    currentTimeTextView.text = newData[0].time
-                    currentAvg5TextView.text = newData[0].ao5
-                    currentAvg12TextView.text = newData[0].ao12
-                    currentMean3TextView.text = newData[0].mo3
+                    currentTimeTextView.text = getTimerFormatString(newData[0].time)
+                    currentAvg5TextView.text = getTimerFormatString(newData[0].ao5)
+                    currentAvg12TextView.text = getTimerFormatString(newData[0].ao12)
+                    currentMean3TextView.text = getTimerFormatString(newData[0].mo3)
 
                     bestAvg12TextView.text = getTimerFormatString(bestAo12)
                     bestTimeTextView.text = getTimerFormatString(bestTime)
@@ -150,6 +162,7 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
                     bestMo3TextView.text = getTimerFormatString(bestMo3)
                 }
 
+                swapTimesGraphData(newData)
                 statisticsRecyclerAdapter.swapData(newData, lastPositionModified)
                 lastPositionModified = 0
             }
@@ -193,7 +206,6 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
             if (event.action == MotionEvent.ACTION_DOWN) {
                 if (model.running) {
                     model.insertStatistic(
-                        timerTextView.text.toString(),
                         scrambleTextView.text.toString(),
                         model.currentTime,
                         System.currentTimeMillis()
@@ -229,6 +241,76 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
             CubeType.REVENGE -> generate4x4Scramble()
             CubeType.PROFESSOR -> generate5x5Scramble()
         }
+    }
+
+    private fun swapTimesGraphData(newData: MutableList<Record>) {
+        var ao5Entries = mutableListOf<Entry>()
+        for (currentData in newData) {
+            ao5Entries.add(
+                Entry(
+                    currentData.number.toFloat(),
+                    if (currentData.ao5 != -1L) currentData.ao5.toFloat() else 0f
+                )
+            )
+        }
+
+        var ao12Entries = mutableListOf<Entry>()
+        for (currentData in newData) {
+            ao12Entries.add(
+                Entry(
+                    currentData.number.toFloat(),
+                    if (currentData.ao12 != -1L) currentData.ao12.toFloat() else 0f
+                )
+            )
+        }
+
+        var timeEntries = mutableListOf<Entry>()
+        for (currentData in newData) {
+            timeEntries.add(Entry(currentData.number.toFloat(), currentData.time.toFloat()))
+        }
+
+        Collections.sort(timeEntries, EntryXComparator())
+        Collections.sort(ao5Entries, EntryXComparator())
+        Collections.sort(ao12Entries, EntryXComparator())
+
+        timeEntries = getRefinedEntries(timeEntries)
+        ao5Entries = getRefinedEntries(ao5Entries)
+        ao12Entries = getRefinedEntries(ao12Entries)
+
+        val timesDataSet = LineDataSet(timeEntries, "Time")
+        timesDataSet.color = ContextCompat.getColor(this, R.color.gray)
+        timesDataSet.setDrawCircles(false)
+        timesDataSet.lineWidth = 4F
+
+        val ao5DataSet = LineDataSet(ao5Entries, "ao5")
+        ao5DataSet.color = ContextCompat.getColor(this, R.color.not_ready)
+        ao5DataSet.setDrawCircles(false)
+        ao5DataSet.lineWidth = 4F
+
+        val ao12DataSet = LineDataSet(ao12Entries, "ao12")
+        ao12DataSet.color = ContextCompat.getColor(this, R.color.colorPrimary)
+        ao12DataSet.setDrawCircles(false)
+        ao12DataSet.lineWidth = 4F
+
+        val lineData = LineData(timesDataSet)
+        lineData.addDataSet(ao5DataSet)
+        lineData.addDataSet(ao12DataSet)
+        lineData.setDrawValues(false)
+
+        timesLineChart.data = lineData
+        timesLineChart.contentDescription = ""
+        timesLineChart.axisRight.isEnabled = false
+
+        val yAxis: YAxis = timesLineChart.axisLeft
+        yAxis.valueFormatter = YAxisValueFormatter()
+        yAxis.granularity = 5000f
+
+        val xAxis = timesLineChart.xAxis
+        xAxis.position = XAxis.XAxisPosition.BOTTOM
+        xAxis.setDrawGridLines(false)
+        xAxis.granularity = 1f
+
+        timesLineChart.invalidate()
     }
 
     private fun setTimerColor(context: Context, colorId: Int) {
@@ -278,6 +360,14 @@ class MainActivity : AppCompatActivity(), StatisticsRecyclerAdapter.OnStatisticC
                     .setPositiveButton(R.string.delete) { _: DialogInterface, _: Int -> model.deleteCurrentCubeType() }
                     .setNegativeButton(R.string.cancel) { dI: DialogInterface, _: Int -> dI.dismiss() }
                     .show()
+            }
+
+            R.id.graph_action -> {
+                if (bottomSheetBehaviour.state == BottomSheetBehavior.STATE_EXPANDED)
+                    bottomSheetBehaviour.state = BottomSheetBehavior.STATE_HIDDEN
+                else
+                    bottomSheetBehaviour.state = BottomSheetBehavior.STATE_EXPANDED
+                timesLineChart.animateX(1000)
             }
         }
 

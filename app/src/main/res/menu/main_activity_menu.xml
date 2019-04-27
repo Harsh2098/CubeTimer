@@ -18,6 +18,12 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/graph_action"
+        android:icon="@drawable/graph_icon"
+        android:title="@string/graph"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/delete_current_type"
         android:icon="@drawable/delete_icon_white"
         android:title="@string/delete"
